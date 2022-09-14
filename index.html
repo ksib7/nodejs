@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://cdn.socket.io/3.1.1/socket.io.min.js"
+      integrity="sha384-gDaozqUvc4HTgo8iZjwth73C6dDDeOJsAgpxBcMpZYztUfjHXpzrpdrHRdVp8ySO"
+      crossorigin="anonymous"
+    ></script>
+    <title>Socket App</title>
+  </head>
+
+  <body>
+    Введите имя <input type="text" id="name" autofocus />
+    <input type="submit" id="sendName" value="Send" />
+
+    <input type="text" id="input" autofocus />
+    <input type="submit" id="send" value="Send" />
+    <ul id="messages"></ul>
+
+    <script type="text/javascript">
+      const socket = io("localhost:3000");
+
+      const addMessage = (msg, clName) => {
+        const msgSpan = document.createElement("li");
+        const userName = document.createElement("span");
+        userName.append(`${clName}: `);
+        msgSpan.append(userName, msg);
+        const msges = document.getElementById("messages");
+        msges.append(msgSpan);
+      };
+
+      const clientId = (id, msg) => {
+        const idSpan = document.createElement("li");
+        idSpan.append(msg, id);
+        document.getElementById("messages").append(idSpan);
+      };
+
+      socket.on("connect", () => {
+        console.log("Successful connected to server");
+      });
+      socket.on("connect error", (err) => {
+        console.log(`connect_error ${err.message}`);
+      });
+      socket.on("SERVER_MSG", (data) => {
+        addMessage(data.msg, data.clName);
+      });
+
+      socket.on("NEW_CONNECT", (data) => {
+        clientId(data.name, data.msg);
+      });
+
+      document.getElementById("send").onclick = () => {
+        socket.emit("CLIENT_MSG", {
+          msg: document.getElementById("input").value,
+        });
+        document.getElementById("input").value = "";
+      };
+
+      document.getElementById("sendName").onclick = () => {
+        socket.emit("CLIENT_MSG_NAME", {
+          nikName: document.getElementById("name").value,
+        });
+        document.getElementById("name").value = "";
+      };
+    </script>
+  </body>
+</html>
